@@ -15,6 +15,7 @@ pip install numpy pandas scikit-learn scipy xgboost matplotlib
 python generate_dataset.py --out simulated_pr_data.csv --n 10000 --seed 42
 python run_experiments.py --data simulated_pr_data.csv
 python make_figures.py --data simulated_pr_data.csv
+python run_dgp_sweep.py
 ```
 
 `run_experiments.py` prints Table 2, the Equation (6) meta-learner
@@ -51,6 +52,7 @@ the reason the stacking layer cannot improve on its base learners.
 | `generate_dataset.py` | Simulation; all design constants are declared at the top |
 | `run_experiments.py` | Reproduces every number in the Results section |
 | `make_figures.py` | Regenerates Figures 5 and 6 |
+| `run_dgp_sweep.py` | Reproduces Table 6, the sweep across generating processes |
 | `simulated_pr_data.csv` | The corpus used in the article (seed 42) |
 
 ## License
