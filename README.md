@@ -55,4 +55,4 @@ the reason the stacking layer cannot improve on its base learners.
 
 ## License
 
-Released under CC BY 4.0. Please cite the article if you use this code or data.
+Released under the MIT License. Please cite the article if you use this code or data.
