@@ -93,7 +93,14 @@ def all_models(one_hot: bool = True, scale: bool = True):
     models["hgb"] = Pipeline(
         [
             ("pre", preprocessor(one_hot, scale)),
-            ("clf", HistGradientBoostingClassifier(random_state=SEED)),
+            (
+                "clf",
+                HistGradientBoostingClassifier(
+                    learning_rate=0.1,
+                    max_depth=4,
+                    random_state=SEED,
+                ),
+            ),
         ]
     )
     models["stack"] = Pipeline(

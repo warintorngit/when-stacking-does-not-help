@@ -5,24 +5,46 @@ Help: An Evaluative Comparison of Ensemble Architectures for Pre-Publication
 Social Media Effectiveness Prediction."*
 
 Everything reported in the article is reproducible from this repository. No
-empirical social media records are used at any point: the corpus is simulated
-from the design constants declared in `generate_dataset.py`.
+empirical social media records are used at any point: the corpus is simulated,
+and the generating process is declared in `generate_dataset.py`.
 
 ## Reproducing the results
 
+The corpus used in the article is included as `simulated_pr_data.csv`. To
+reproduce the tables and figures exactly, run the analysis against that file:
+
 ```bash
 pip install numpy pandas scikit-learn scipy xgboost matplotlib
-python generate_dataset.py --out simulated_pr_data.csv --n 10000 --seed 42
 python run_experiments.py --data simulated_pr_data.csv
 python make_figures.py --data simulated_pr_data.csv
 python run_dgp_sweep.py
 ```
 
-`run_experiments.py` prints Table 2, the Equation (6) meta-learner
+`run_experiments.py` prints Table III, the Equation (6) meta-learner
 coefficients, the Figure 5 confusion matrix, the five-fold cross-validation
-comparison with paired t-tests, the feature importance scores, the ablation
-study, and the Bayes rate of the design. `make_figures.py` writes Figures 5
-and 6.
+comparison with paired t-tests of Table IV, the feature importance scores, the
+ablation study, and the Bayes rate of Table V. `make_figures.py` writes
+Figures 5 and 6. `run_dgp_sweep.py` reproduces the Table VI sweep.
+
+`generate_dataset.py` documents the generating process and draws a fresh corpus
+from it:
+
+```bash
+python generate_dataset.py --out new_corpus.csv --n 10000 --seed 42
+```
+
+A fresh draw is statistically equivalent to the published corpus but not
+identical to it, so the figures it produces differ from the article in the
+third significant digit. Use `simulated_pr_data.csv` to reproduce the published
+values and `generate_dataset.py` to inspect or vary the design.
+
+## Reproducibility note
+
+All results were produced with the random seed fixed at 42, and the
+scikit-learn components are byte-stable across runs. The XGBoost benchmark is
+the one exception: its accuracy can shift by a few hundredths of a percentage
+point between library versions, which leaves every comparison and conclusion in
+the article unchanged.
 
 ## Design of the simulation
 
@@ -49,11 +71,11 @@ the reason the stacking layer cannot improve on its base learners.
 
 | File | Purpose |
 |---|---|
-| `generate_dataset.py` | Simulation; all design constants are declared at the top |
+| `simulated_pr_data.csv` | The corpus used in the article |
 | `run_experiments.py` | Reproduces every number in the Results section |
 | `make_figures.py` | Regenerates Figures 5 and 6 |
-| `run_dgp_sweep.py` | Reproduces Table 6, the sweep across generating processes |
-| `simulated_pr_data.csv` | The corpus used in the article (seed 42) |
+| `run_dgp_sweep.py` | Reproduces Table VI, the sweep across generating processes |
+| `generate_dataset.py` | The generating process; draws a fresh corpus from it |
 
 ## License
 
