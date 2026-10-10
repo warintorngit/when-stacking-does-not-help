@@ -6,7 +6,7 @@ learners are forced apart by giving each a different feature subset -- and
 records whether the Stacking Ensemble improves on its best base learner in each
 condition.
 """
-import argparse, warnings
+import argparse, os, warnings
 warnings.filterwarnings("ignore")
 import numpy as np, pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -26,6 +26,11 @@ from generate_dataset import (CELL_MEANS, CELL_COV, POST_TYPES, POST_TYPE_P,
 CAT = ["post_type", "content_theme", "post_time"]
 NUM = ["caption_length", "num_hashtags"]
 SEED = 42
+
+# The baseline condition is the design reported in the main experiment, so it is
+# read from the published corpus rather than drawn afresh. Every other condition
+# perturbs that design and is generated from the constants in generate_dataset.py.
+PUBLISHED_CORPUS = "simulated_pr_data.csv"
 
 
 def make_corpus(n, seed, noise_scale=1.0, interaction=0.0):
@@ -83,7 +88,20 @@ def evaluate(df, decorrelate=False):
     for nm, mdl in base:
         mdl.fit(Xtr, ytr)
         accs[nm] = accuracy_score(yte, mdl.predict(Xte))
-    stack = StackingClassifier(estimators=base, final_estimator=LogisticRegression(), cv=5)
+    if decorrelate:
+        # Each learner sees a different feature subset, so preprocessing has to
+        # sit inside each base pipeline.
+        stack = StackingClassifier(estimators=base,
+                                   final_estimator=LogisticRegression(), cv=5)
+    else:
+        # Same construction as the main experiment: one shared preprocessing
+        # step, then the stacking classifier over the raw algorithms.
+        stack = Pipeline([
+            ("p", prep()),
+            ("m", StackingClassifier(
+                estimators=list(zip(names, algos)),
+                final_estimator=LogisticRegression(), cv=5)),
+        ])
     stack.fit(Xtr, ytr)
     acc_stack = accuracy_score(yte, stack.predict(Xte))
 
@@ -112,7 +130,11 @@ if __name__ == "__main__":
     a = ap.parse_args()
     print(f"{'Condition':30s} {'Bayes%':>7s} {'Best base%':>11s} {'Stacking%':>10s} {'Delta':>7s}")
     for label, kw, dec in CONDITIONS:
-        df = make_corpus(a.n, SEED, **kw)
+        is_baseline = kw["noise_scale"] == 1.0 and kw["interaction"] == 0.0
+        if is_baseline and os.path.exists(PUBLISHED_CORPUS):
+            df = pd.read_csv(PUBLISHED_CORPUS)
+        else:
+            df = make_corpus(a.n, SEED, **kw)
         best, st, bayes = evaluate(df, decorrelate=dec)
         print(f"{label:30s} {bayes*100:7.2f} {best*100:11.2f} {st*100:10.2f} "
               f"{(st-best)*100:+7.2f}")
